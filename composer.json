@@ -20,20 +20,11 @@
             "Weboap\\Option": "src/"
         }
     },
-    "config": {
-		"preferred-install": "stable",
-		"discard-changes": "true"
-	},
 	"minimum-stability": "stable",
 	"require-dev": {
-		"orchestra/testbench": "2.1.*",
-		"mockery/mockery": "dev-master",
-		"way/laravel-test-helpers": "dev-master",
-		"doctrine/dbal": "~2.3"
+               "illuminate/support": "4.1.x",
+                "mockery/mockery": "dev-master",
+		"way/laravel-test-helpers": "dev-master"
 		
-	},
-	"replace": {
-	    "phpseclib/phpseclib": "0.3.*"
-	}
-	
+		}
 }
