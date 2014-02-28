@@ -21,7 +21,7 @@ public function all()
    
 public function update($key, array $data)
 {
-    return DB::table( $this->tableName )->where('key', $key)->update($data);
+    return DB::table( $this->tableName )->whereKey( $key )->update($data);
 }    
     
 
@@ -33,7 +33,7 @@ public function create( array $data)
     
 public function delete($key)
 {
-    return DB::table( $this->tableName )->where('key', '=', $key)->delete();   
+    return DB::table( $this->tableName )->whereKey( $key )->delete();   
     
 }
 
