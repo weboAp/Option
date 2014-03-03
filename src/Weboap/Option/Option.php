@@ -75,8 +75,6 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	{
 		foreach($array as $key => $value)
 		{
-			$key = $this->checkKey($key);
-			
 			$this->offsetSet($key, $value);
 		}
 	}
@@ -85,6 +83,8 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	
 	public function offsetSet($key, $value)
 	{
+		
+		$key = $this->checkKey($key);
 		
 		if($this->has($key)){
 			
@@ -115,14 +115,14 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	 */
 	public function get($key)
 	{
-		$key = $this->checkKey($key);
-		
 		return $this->offsetGet($key);
 	}
 	
 	
 	public function offsetGet($key)
 	{
+		$key = $this->checkKey($key);
+		
 		return $this->offsetExists( $key ) ? $this->config[ $key ] : NULL;
 	}
 	
@@ -132,13 +132,13 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	 */
 	public function forget($key)
 	{
-		$key = $this->checkKey($key);
-		
 		$this->offsetUnset($key);
 	}
 	
 	public function offsetUnset($key)
 	{
+		$key = $this->checkKey($key);
+		
 		//unset the key in config array
 		unset($this->config[$key]);
 		
@@ -156,14 +156,14 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	
 	public function has($key)
 	{
-		$key = $this->checkKey($key);
-		
 		return $this->offsetExists($key);
 	}
 	
     
     	public function offsetExists($key)
 	{
+		$key = $this->checkKey($key);
+		
 		return isset( $this->config[$key] );
 	}
 	
