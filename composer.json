@@ -1,6 +1,8 @@
 {
     "name": "weboap/option",
-    "description": "Save and retreive config from db for laravel 4",
+    "description": "Save and retreive config from db for laravel 4 / Access Config as Array",
+    "keywords": ["framework", "laravel","Carabiner"],
+    "license": "BSD-2-Clause",
     "authors": [
         {
             "name": "weboap",
