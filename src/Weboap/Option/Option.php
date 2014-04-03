@@ -3,7 +3,11 @@
 use Weboap\Option\Storage\OptionInterface as OptionInterface;
 use Weboap\Option\Interfaces\OptionClassInterface;
 use Illuminate\Cache\CacheManager as Cache;
+
 use Illuminate\Exception\Handler as Exception;
+use Weboap\Option\Exceptions\SaveException;
+use Weboap\Option\Exceptions\InvalidArgumentException;
+
 use Carbon\Carbon as c;
 use Illuminate\Config\Repository as Config;
 
@@ -86,21 +90,26 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 		
 		$key = $this->checkKey($key);
 		
-		if($this->has($key)){
+		$value = serialize( $value );
+		
 			
-			$this->storage->update($key, array(
-							'value' 	=> $value,
-							'updated_at'	=> c::now()
-						));
-			
-		} else {
-			$this->storage->create(array(
-							'key' => $key,
-							'value' => $value,
-							'updated_at'	=> c::now(),
-							'created_at'	=> c::now()
-							));
-		}
+			if($this->has($key)){
+
+					$this->storage->update($key, array(
+						'value' => $value,
+						'updated_at'	=> c::now()
+					));
+				
+				}
+				else
+				{
+					$this->storage->create(array(
+						'key' => $key,
+						'value' => $value,
+						'updated_at'	=> c::now(),
+						'created_at'	=> c::now()
+					));
+				}
 		
 		$this->config[$key] = $value;
 
@@ -115,7 +124,9 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	 */
 	public function get($key)
 	{
-		return $this->offsetGet($key);
+		$value = $this->offsetGet($key);
+		
+		return is_null( $value ) ? NULL : unserialize( $value );
 	}
 	
 	
@@ -167,6 +178,28 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 		return isset( $this->config[$key] );
 	}
 	
+	public function all()
+	{
+		if(count($this->config) == 0 ) return null;
+		
+		foreach($this->config as $key => $value)
+		{
+			$value = unserialize($value);
+		}
+		
+		return $this->config;
+	
+	}
+	
+	public function clear()
+	{
+    
+		$this->storage->clear();
+		// Clear the database cache
+		$this->cache->forget( $this->tableName );
+    
+	}
+	
 
 	
 	public function serialize()
@@ -192,7 +225,7 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 	{
 		if( '' === $key || !is_string( $key ))
 		{
-			throw new \InvalidArgumentException('Invalid Option Key!');
+			throw new InvalidArgumentException('Invalid Option Key!');
 		}
 	
 		$key = htmlentities( trim( $key ) );
@@ -203,4 +236,4 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
     
 }
 
-class InvalidArgumentException extends Exception {}
+

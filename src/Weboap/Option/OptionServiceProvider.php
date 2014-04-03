@@ -42,8 +42,10 @@ class OptionServiceProvider extends ServiceProvider {
 		
 		$this->app['option'] = $this->app->share(function($app)
 			{
+			    $DbTable = $app['config']->get('option::table');
+			    
 			    return new Option(
-					      $this->app->make('Weboap\Option\Storage\OptionInterface'),
+					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $DbTable ) ),
 					      $app['cache'],
 					      $app['config']
 					      );
@@ -62,8 +64,7 @@ class OptionServiceProvider extends ServiceProvider {
 				{
 				   $loader = \Illuminate\Foundation\AliasLoader::getInstance();
 				   $loader->alias('Option', 'Weboap\Option\Facades\Option');
-			
-				    
+			  
 				});
 		
 		

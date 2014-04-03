@@ -12,4 +12,7 @@ interface OptionInterface {
     
     public function delete( $key );
     
+    public function clear();
+    
+    
 }
