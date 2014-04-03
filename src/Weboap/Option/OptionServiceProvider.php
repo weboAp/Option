@@ -42,15 +42,21 @@ class OptionServiceProvider extends ServiceProvider {
 		
 		$this->app['option'] = $this->app->share(function($app)
 			{
-			    $DbTable = $app['config']->get('option::table');
+			    $table = $app['config']->get('option::table');
 			    
 			    return new Option(
-					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $DbTable ) ),
+					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $table) ),
 					      $app['cache'],
 					      $app['config']
 					      );
 			
 			});
+		
+		$this->app->bind('Weboap\Option\Option', function($app) {
+			
+			return $app['option'];
+		
+		    });
 		
 		
 	}

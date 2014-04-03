@@ -61,9 +61,9 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 				    Config $setting = null
 				    )
 	{
-		$this->storage = (isset($storage) ? $storage : App::make('Weboap\Option\Storage\OptionInterface') );
-		$this->cache = (isset($cache) ? $cache : App::make('cache') );
-		$this->setting = (isset($setting) ? $setting : App::make('config') );
+		$this->storage = $storage;
+		$this->cache = $cache;
+		$this->setting = $setting;
 		
 		$this->tableName = $this->setting->get('option::table');
 		
