@@ -79,11 +79,11 @@ or
 you can access config as array like
 
 
-$config = new \Weboap\Option\Option;
-
-echo $config['foo'];
+$config = \App::make('option');
 
 $config['foo'] = 'bar';
+
+echo $config['foo'];
 
 unset($config['foo']);
 

@@ -52,7 +52,8 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
     */
     public function __construct( $tableName , OptionInterface $storage, Cache $cache, Config $setting )
     {
-            $this->storage = $storage;
+            
+	    $this->storage = $storage;
             $this->cache = $cache;
             $this->setting = $setting;
 
