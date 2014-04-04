@@ -52,9 +52,10 @@ to migrate option table
 
 
 ``` php
-
+//set one key
 Option::set('key', 'value');
 
+// or set an array of key, values
 Option::batchSet(array('key'=>'value', 'key1'=>'value1', .....));
 
 Option::get('key');
@@ -63,6 +64,10 @@ Option::forget('key');
 
 Option::has('key');
 
+//retreive all keys, values at once
+Option::all(); 
+
+//retreive all values serialized
 Option::serialize();
 
 Option::toJson();

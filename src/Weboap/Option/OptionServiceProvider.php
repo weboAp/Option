@@ -40,7 +40,6 @@ class OptionServiceProvider extends ServiceProvider {
 	public function RegisterOption()
 	{
 		
-                
 		$this->app['option'] = $this->app->share(function($app)
 			{
 			    $tableName = $this->app['config']->get('option::table', 'options');
@@ -58,7 +57,6 @@ class OptionServiceProvider extends ServiceProvider {
 			return $app['option'];
 		
 		    });
-		
 		
 	}
 	

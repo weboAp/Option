@@ -2,9 +2,6 @@
 
 
 
-
-
-
 interface OptionClassInterface {
     
    public function set($key, $value);
