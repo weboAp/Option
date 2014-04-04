@@ -4,7 +4,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use \Carbon\Carbon;
 
-
+use Option as o;
 
 class OptionsTableSeeder extends Seeder {
 
@@ -16,16 +16,9 @@ class OptionsTableSeeder extends Seeder {
 	public function run()
 	{
 		
-		DB::table('options')->insert(array (
-			0 => 
-			array (
-				'key' 	=> 'option.version',
-				'value' => '1.0',
-				'created_at' => Carbon::now(),
-				'updated_at' => Carbon::now()
-			)
+		o::set('option.version','1.0.1');
 			
-		));
+		
 	}
 
 }

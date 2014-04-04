@@ -52,7 +52,10 @@ to migrate option table
 
 
 ``` php
-Option::set(array('key'=>'value', 'key1'=>'value1', .....));
+
+Option::set('key', 'value');
+
+Option::batchSet(array('key'=>'value', 'key1'=>'value1', .....));
 
 Option::get('key');
 

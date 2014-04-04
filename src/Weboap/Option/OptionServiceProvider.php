@@ -40,12 +40,13 @@ class OptionServiceProvider extends ServiceProvider {
 	public function RegisterOption()
 	{
 		
+                
 		$this->app['option'] = $this->app->share(function($app)
 			{
-			    $table = $app['config']->get('option::table');
-			    
-			    return new Option(
-					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $table) ),
+			    $tableName = $this->app['config']->get('option::table', 'options');
+                            
+			    return new Option( $tableName,
+					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $tableName) ),
 					      $app['cache'],
 					      $app['config']
 					      );
