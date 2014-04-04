@@ -49,14 +49,12 @@ to migrate option table
 
 ###  Usage
 
-
+Note : the keys are to be set group.key (eg: 'gallery.path', 'cache.timeout')
+ that way the options are grouped per categories
+keys that don't have a group the package will prepend 'global.' to
+eg: seting a key : 'business' will be retreived like 'global.business'
 
 ``` php
-
-//note : the keys are to be set group.key (eg: 'gallery.path', 'cache.timeout')
-// that way the options are grouped per categories
-//keys that dont have the group the class will prepend 'global.' to
-//eg: seting a key : 'business' will be retreived like 'global.business'
 
 
 //set one key
@@ -93,11 +91,11 @@ you can access config as array like
 
 $config = \App::make('option');
 
-$config['foo'] = 'bar';
+$config['mygroup.foo'] = 'bar';
 
-echo $config['foo'];
+echo $config['mygroup.foo'];
 
-unset($config['foo']);
+unset($config['mygroup.foo']);
 
 
 
