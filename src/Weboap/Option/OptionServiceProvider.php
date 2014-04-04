@@ -44,10 +44,10 @@ class OptionServiceProvider extends ServiceProvider {
 			{
 			    $tableName = $this->app['config']->get('option::table', 'options');
                             
-			    return new Option( $tableName,
+			    return new Option(
 					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $tableName) ),
-					      $app['cache'],
-					      $app['config']
+					        $app['cache'],
+						$tableName
 					      );
 			
 			});
@@ -80,7 +80,7 @@ class OptionServiceProvider extends ServiceProvider {
 	{
 		$this->app->singleton(
 			'Weboap\Option\Storage\OptionInterface',
-			'Weboap\Option\Storage\OptionDbRepository'
+			'Weboap\Option\Storage\OptionEloquentRepository'
                 );
 	}
 	

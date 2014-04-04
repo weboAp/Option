@@ -19,7 +19,7 @@ class CreateOptionsTable extends Migration {
 		{
 			$table->increments('id')->unsigned();
 			$table->string('key', 50);
-			$table->text('value')->nullable();
+			$table->text('val')->nullable();
 			$table->text('description')->nullable();
 			$table->timestamps();
 		});

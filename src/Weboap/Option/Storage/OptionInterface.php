@@ -6,9 +6,9 @@ interface OptionInterface {
 
     public function all();
     
-    public function update($key, array $data );
+    public function update($key, $value );
     
-    public function create( array $data );
+    public function create( $key, $value );
     
     public function delete( $key );
     

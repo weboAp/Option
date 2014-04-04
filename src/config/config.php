@@ -2,9 +2,9 @@
 
 return array(
     
-    'enabled' 	=> true,
-    
-    'table'	=> 'options'
+    //in case you decide to the change the table name
+    //make sure to change it here also
+   'table'  => 'options' 
     
   
   );

@@ -3,7 +3,6 @@
 use ArrayAccess;
 use Carbon\Carbon as c;
 use Illuminate\Cache\CacheManager as Cache;
-use Illuminate\Config\Repository as Config;
 use Serializable;
 use Weboap\Option\Exceptions\InvalidArgumentException;
 use Weboap\Option\Interfaces\OptionClassInterface;
@@ -50,86 +49,89 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
     * @param OptionInterface $storage The Database Interface
     * @param Cache $cache
     */
-    public function __construct( $tableName , OptionInterface $storage, Cache $cache, Config $setting )
+    public function __construct( OptionInterface $storage, Cache $cache, $cachekey = 'options' )
     {
             
 	    $this->storage = $storage;
             $this->cache = $cache;
-            $this->setting = $setting;
 
-            $this->tableName = $tableName;
+            $this->cachekey = $cachekey;
 
             $this->table = $this->storage->all();
 
             // Set the config array like a typical config file is structured
-            $this->options = $this->table->lists('value', 'key');
+            $this->options = $this->table->lists('val', 'key');
     }
+    
 
-    public function set($key, $value)
+    public function set($key, $val)
     {
-        $this->offsetSet($key, $value);
+        $this->offsetSet($key, $val);
     }
+    
 
     public function batchSet( Array $array)
     {
-            foreach($array as $key => $value)
+            foreach($array as $key => $val)
             {
-                    $this->offsetSet($key, $value);
+                    $this->offsetSet($key, $val);
             }
     }
+    
+    
+    public function offsetSet($key, $val)
+    {
 
+            $key = $this->verify($key);
+	    
+		if($this->has($key)){
+	
+			    $this->storage->update($key,  $val);
+	
+			}
+			else
+			{
+			    $this->storage->create($key, $val );
+			       
+			}
+
+            $this->options[$key] = $val;
+
+            // Clear the database cache
+            $this->cache->forget( $this->cachekey );
+    }
+
+    
     /**
      * syntactic sugar for offsetGet($key)
      *
      */
     public function get($key)
     {
-            $value = $this->offsetGet($key);
-
-            return is_null( $value ) ? NULL : $value;
+	    return $this->offsetGet($key);
     }
-
-    public function offsetSet($key, $value)
+    
+    public function getGroup($group)
     {
-
-            $key = $this->checkKey($key);
-
-            $value = serialize( $value );
-		
-
-                    if($this->has($key)){
-
-                                    $this->storage->update($key, array(
-                                            'value'             => $value,
-                                            'updated_at'	=> c::now()
-                                    ));
-
-                            }
-                            else
-                            {
-                                    $this->storage->create(array(
-                                            'key'               => $key,
-                                            'value'             => $value,
-                                            'updated_at'	=> c::now(),
-                                            'created_at'	=> c::now()
-                                    ));
-                            }
-
-            $this->options[$key] = $value;
-
-            // Clear the database cache
-            $this->cache->forget( $this->tableName );
+	$all = $this->all();
+	
+	foreach ($all as $key => $value)
+	{
+		if( ! starts_with( $key, $group.'.') )
+		{
+			unset($all[$key]);
+		}
+	}
+	
+	return count($all) > 0 ? $all : NULL;
     }
-
-
-
 
 
     public function offsetGet($key)
     {
-            $key = $this->checkKey($key);
-
-            return $this->offsetExists( $key ) ? unserialize( $this->options[$key]) : NULL;
+            $key = $this->verify($key);
+		
+            return $this->offsetExists( $key ) ? $this->options[$key] : NULL;
     }
 
     /**
@@ -144,16 +146,16 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 
     public function offsetUnset($key)
     {
-            $key = $this->checkKey($key);
+            $key = $this->verify($key);
 
-            //unset the key in config array
+            //unset the key in array
             unset($this->options[$key]);
 
             //delete the key from db
             $this->storage->delete($key);
 
             // Clear the database cache
-            $this->cache->forget( $this->tableName );
+            $this->cache->forget( $this->cachekey );
     }	
 
     /**
@@ -169,7 +171,7 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 
     public function offsetExists($key)
     {
-            $key = $this->checkKey($key);
+            $key = $this->verify($key);
 
             return isset( $this->options[$key] );
     }
@@ -180,11 +182,6 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
             {
                 return null;
             }    
-
-            foreach($this->options as $key => $value)
-            {
-		$this->options[$key] = @unserialize($value);
-            }
 	    
             return $this->options;
 
@@ -195,11 +192,9 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 
             $this->storage->clear();
             // Clear the database cache
-            $this->cache->forget( $this->tableName );
+            $this->cache->forget( $this->cachekey );
 
     }
-
-
 
     public function serialize()
     {
@@ -209,8 +204,8 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
     public function unserialize($serialized)
     {
             $config = unserialize($serialized);
-            foreach($config as $key => $value){
-                    $this[$key] = $value;
+            foreach($config as $key => $val){
+                    $this[$key] = $val;
             }
     }
 
@@ -220,17 +215,19 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
     }
 
 
-    private function checkKey($key)
+    private function verify($key = '')
     {
             if( empty($key) || ! is_string( $key ))
             {
                     throw new InvalidArgumentException('Invalid Option Key!');
             }
 
-            $key = strtolower( htmlentities( trim( $key ) ) );
+            $key =  e( trim( $key ) );
 
             return $key;	
     }
+    
+    
 
 
 }
