@@ -45,7 +45,7 @@ class OptionServiceProvider extends ServiceProvider {
 			    $tableName = $this->app['config']->get('option::table', 'options');
                             
 			    return new Option(
-					      $this->app->make('Weboap\Option\Storage\OptionInterface', array( $tableName) ),
+					      $this->app->make('Weboap\Option\Storage\OptionEloquentRepository', array( $tableName) ),
 					        $app['cache'],
 						$tableName
 					      );
