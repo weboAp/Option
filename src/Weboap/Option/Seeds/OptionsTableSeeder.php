@@ -3,18 +3,22 @@
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use \Carbon\Carbon;
+
 use Option as o;
 
-class OptionsTableSeeder extends Seeder
-{
+class OptionsTableSeeder extends Seeder {
 
-    /**
-     * Auto generated seed file
-     *
-     * @return void
-     */
-    public function run()
-    {
-        o::set('option.version', '1.0.1');
-    }
+	/**
+	 * Auto generated seed file
+	 *
+	 * @return void
+	 */
+	public function run()
+	{
+		
+		o::set('option.version','1.0.1');
+			
+		
+	}
+
 }

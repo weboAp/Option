@@ -8,93 +8,107 @@ use Weboap\Option\Exceptions\InvalidArgumentException;
 use Weboap\Option\Interfaces\OptionClassInterface;
 use Weboap\Option\Storage\OptionInterface as OptionInterface;
 
-class Option implements ArrayAccess, Serializable, OptionClassInterface
-{
 
+
+
+class Option implements ArrayAccess, Serializable, OptionClassInterface{
+	
     /**
-     * The Config array
-     *
-     * @var array
-     */
+    * The Config array
+    * @var array
+    */
     protected $options = array();
 
     /**
-     * The Config array
-     *
-     * @var string
-     */
+    * The Config array
+    * @var string
+    */	
     protected $tableName = null;
 
     /**
-     * The Option Repository Interface Instance
-     *
-     * @var OpenInterface
-     */
+    * The Option Repository Interface Instance
+    * @var OpenInterface
+    */
     protected $storage;
 
     /**
-     * The Cache Manager Instance
-     *
-     * @var Cache
-     */
+    * The Cache Manager Instance
+    * @var Cache
+    */
     protected $cache;
 
     /**
-     * The Config Instance
-     *
-     * @var Config
-     */
+    * The Config Instance
+    * @var Config
+    */
     protected $setting;
 
     /**
-     * Initialize the Option Class
-     * build the Config array.
-     *
-     * @param OptionInterface $storage The Database Interface
-     * @param Cache           $cache
-     */
-    public function __construct(OptionInterface $storage, Cache $cache, $cachekey = 'options')
+    * Initialize the Option Class
+    * build the Config array.
+    * @param OptionInterface $storage The Database Interface
+    * @param Cache $cache
+    */
+    public function __construct( OptionInterface $storage, Cache $cache, $cachekey = 'options' )
     {
-        $this->storage  = $storage;
-        $this->cache    = $cache;
-        $this->cachekey = $cachekey;
-        $this->table    = $this->storage->all();
-        // Set the config array like a typical config file is structured
-        $this->options = $this->table->lists('val', 'key');
+            
+	    $this->storage = $storage;
+            $this->cache = $cache;
+
+            $this->cachekey = $cachekey;
+
+            $this->table = $this->storage->all();
+
+            // Set the config array like a typical config file is structured
+            $this->options = $this->table->lists('val', 'key');
     }
+    
 
     public function set($key, $val)
     {
         $this->offsetSet($key, $val);
     }
+    
 
-    public function batchSet(Array $array)
+    public function batchSet( Array $array)
     {
-        foreach ($array as $key => $val) {
-            $this->offsetSet($key, $val);
-        }
+            foreach($array as $key => $val)
+            {
+                    $this->offsetSet($key, $val);
+            }
     }
-
+    
+    
     public function offsetSet($key, $val)
     {
-        $key = $this->verify($key);
-        if ($this->has($key)) {
-            $this->storage->update($key, $val);
-        } else {
-            $this->storage->create($key, $val);
-        }
-        $this->options[$key] = $val;
-        // Clear the database cache
-        $this->cache->forget($this->cachekey);
+
+            $key = $this->verify($key);
+	    
+		if($this->has($key)){
+	
+			    $this->storage->update($key,  $val);
+	
+			}
+			else
+			{
+			    $this->storage->create($key, $val );
+			       
+			}
+
+            $this->options[$key] = $val;
+
+            // Clear the database cache
+            $this->cache->forget( $this->cachekey );
     }
 
+    
     /**
      * syntactic sugar for offsetGet($key)
      *
      */
     public function get($key)
     {
-        return $this->offsetGet($key);
+	    return $this->offsetGet($key);
     }
 
     public function getGroup($group, $withPrefix = true)
@@ -120,10 +134,12 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
         return count($all) > 0 ? $all : null;
     }
 
+
     public function offsetGet($key)
     {
-        $key = $this->verify($key);
-        return $this->offsetExists($key) ? $this->options[$key] : null;
+            $key = $this->verify($key);
+		
+            return $this->offsetExists( $key ) ? $this->options[$key] : NULL;
     }
 
     /**
@@ -132,67 +148,80 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
      */
     public function forget($key)
     {
-        $this->offsetUnset($key);
+            $this->offsetUnset($key);
     }
+    
 
     public function offsetUnset($key)
     {
-        $key = $this->verify($key);
-        //unset the key in array
-        unset($this->options[$key]);
-        //delete the key from db
-        $this->storage->delete($key);
-        // Clear the database cache
-        $this->cache->forget($this->cachekey);
-    }
+            $key = $this->verify($key);
+
+            //unset the key in array
+            unset($this->options[$key]);
+
+            //delete the key from db
+            $this->storage->delete($key);
+
+            // Clear the database cache
+            $this->cache->forget( $this->cachekey );
+    }	
 
     /**
      * syntactic sugar for offsetExists($key)
      *
      */
+
     public function has($key)
     {
-        return $this->offsetExists($key);
+            return $this->offsetExists($key);
     }
+
 
     public function offsetExists($key)
     {
-        $key = $this->verify($key);
-        return isset($this->options[$key]);
+            $key = $this->verify($key);
+
+            return isset( $this->options[$key] );
     }
 
     public function all()
     {
-        if (count($this->options) == 0) {
-            return null;
-        }
-        return $this->options;
+            if( count( $this->options ) == 0 )
+            {
+                return null;
+            }    
+	    
+            return $this->options;
+
     }
 
     public function clear()
     {
-        $this->storage->clear();
-        // Clear the database cache
-        $this->cache->forget($this->cachekey);
+
+            $this->storage->clear();
+            // Clear the database cache
+            $this->cache->forget( $this->cachekey );
+
     }
 
     public function serialize()
     {
-        return serialize($this->options);
+            return serialize($this->options);
     }
 
     public function unserialize($serialized)
     {
-        $config = unserialize($serialized);
-        foreach ($config as $key => $val) {
-            $this[$key] = $val;
-        }
+            $config = unserialize($serialized);
+            foreach($config as $key => $val){
+                    $this[$key] = $val;
+            }
     }
 
     public function toJson()
     {
-        return json_encode($this->options);
+            return json_encode($this->options);
     }
+
 
     private function verify($key = '')
     {
@@ -219,6 +248,10 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
         }
         return $key;
     }
+    
+    
+
+
 }
 
 
