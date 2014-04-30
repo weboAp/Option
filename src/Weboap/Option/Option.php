@@ -239,7 +239,7 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface{
 
     private function toPrefix($key)
     {
-        $prefix = \Config::get('option::default_prefix');
+        $prefix = \Config::get('option::default_prefix', 'global');
         if (empty($prefix)) {
             throw new Exception('default_prefix can not be empty');
         }
