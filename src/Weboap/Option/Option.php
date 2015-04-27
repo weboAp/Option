@@ -197,13 +197,11 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
     private function verify($key = '')
     {
         if (empty($key) || !is_string($key)) {
-            throw new InvalidArgumentException('Invalid Option Key!');
+            throw new \InvalidArgumentException('Invalid Option Key!');
         }
         $key = e(trim($key));
-        $key = strtolower($key);
-        $key = $this->toPrefix($key);
-        if (strlen($key) > 50) {
-            throw new InvalidArgumentException('Invalid Option Key Length, max=50!');
+        if (!str_is('*.*', $key)) {
+            $key = sprintf('global.%s', $key);
         }
         return $key;
     }

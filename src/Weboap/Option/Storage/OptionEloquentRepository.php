@@ -20,7 +20,7 @@ class OptionEloquentRepository implements OptionInterface
 
     public function update($key, $value)
     {
-        $array = array('key' => $key, 'val' => $value);
+        $array = array('key' => $key, 'val' => serialize($value));
         return o::whereKey($key)->update($array);
     }
 
