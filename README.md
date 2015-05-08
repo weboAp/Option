@@ -31,8 +31,8 @@ Add
 ``` php
 'Weboap\Option\OptionServiceProvider'
 ``` 
+to the list of service providers in config/app.php
 
-to the list of service providers in app/config/app.php
 
 ## Step 3 
 
@@ -40,11 +40,11 @@ Migrate the Option Table
 Run
 
 ``` php
-php artisan migrate --package="weboap/option"
+php artisan vendor:publish
+php artisan migrate
 ``` 
 
-to migrate option table
-
+you can check app/option.php to costumize Option config file.
 
 
 ###  Usage
@@ -89,7 +89,7 @@ or
 you can access config as array like
 
 
-$config = \App::make('option');
+$config = App::make('option');
 
 $config['mygroup.foo'] = 'bar';
 
