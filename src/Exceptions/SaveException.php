@@ -1,6 +1,6 @@
 <?php namespace Weboap\Option\Exceptions;
 
-use Illuminate\Exception\Handler as Exception;
+use Exception;
 
 class SaveException extends Exception
 {

@@ -1,9 +1,10 @@
-<?php
+<?php 
+
 use Mockery as m;
 use Illuminate\Config\Repository as Config;
 use Illuminate\Cache\CacheManager as Cache;
 
-class OptionTest extends TestCase
+class OptionTest extends \Illuminate\Foundation\Testing\TestCase
 {
 
     use \Way\Tests\ModelHelpers;
@@ -11,11 +12,32 @@ class OptionTest extends TestCase
     protected $op;
 
     protected $mock;
+    
+    
+    public function createApplication()
+    {
+                putenv('DB_DEFAULT=sqlite_testing');
+                
+                require __DIR__ . '/../../../../vendor/autoload.php';
+                
+                $app = require __DIR__ . '/../../../../bootstrap/app.php';
+    
+
+                return $app;
+    
+    }
+    
+    
+    
 
     public function setUp()
     {
         parent::setUp();
-        $this->op = new \Weboap\Option\Option;
+        
+        $this->app->register('Weboap\Option\OptionServiceProvider');
+        
+        
+        $this->op =  $this->app->make('Weboap\Option\Option');
     }
 
     public function tearDown()

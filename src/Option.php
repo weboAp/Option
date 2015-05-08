@@ -3,10 +3,13 @@
 use ArrayAccess;
 use Carbon\Carbon as c;
 use Illuminate\Cache\CacheManager as Cache;
+use Illuminate\Config\Repository  as Config;
 use Serializable;
 use Weboap\Option\Exceptions\InvalidArgumentException;
 use Weboap\Option\Interfaces\OptionClassInterface;
 use Weboap\Option\Storage\OptionInterface as OptionInterface;
+
+
 
 class Option implements ArrayAccess, Serializable, OptionClassInterface
 {
@@ -38,13 +41,9 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
      * @var Cache
      */
     protected $cache;
-
-    /**
-     * The Config Instance
-     *
-     * @var Config
-     */
-    protected $setting;
+    
+   
+    
 
     /**
      * Initialize the Option Class
@@ -53,39 +52,54 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
      * @param OptionInterface $storage The Database Interface
      * @param Cache           $cache
      */
-    public function __construct(OptionInterface $storage, Cache $cache, $cachekey = 'options')
+    public function __construct(OptionInterface $storage , Cache $cache, Config $config)
     {
-        $this->storage  = $storage;
-        $this->cache    = $cache;
-        $this->cachekey = $cachekey;
-        $this->table    = $this->storage->all();
-        // Set the config array like a typical config file is structured
-        $this->options = $this->table->lists('val', 'key');
+        $this->storage      = $storage;
+        
+        $this->cache        = $cache;
+        
+        $this->config       = $config;
+        
+        $this->options      = $this->storage->all()->lists('value', 'key');
+    
     }
+    
 
-    public function set($key, $val)
+    public function set($key, $value)
     {
-        $this->offsetSet($key, $val);
+        $this->offsetSet($key, $value); 
     }
 
     public function batchSet(Array $array)
     {
-        foreach ($array as $key => $val) {
-            $this->offsetSet($key, $val);
+        
+        foreach ($array as $key => $value)
+        {
+            
+            $this->offsetSet($key, $value);
+            
         }
+        
     }
 
-    public function offsetSet($key, $val)
+    public function offsetSet($key, $value)
     {
         $key = $this->verify($key);
-        if ($this->has($key)) {
-            $this->storage->update($key, $val);
-        } else {
-            $this->storage->create($key, $val);
+        
+        if ($this->has($key))
+        {
+            $this->storage->update($key, $value);
         }
-        $this->options[$key] = $val;
+        else
+        {
+            $this->storage->create($key, $value);
+        }
+        
+        $this->options[$key] = $value;
+        
         // Clear the database cache
-        $this->cache->forget($this->cachekey);
+        $this->cache->flush();
+        
     }
 
     /**
@@ -96,34 +110,54 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
     {
         return $this->offsetGet($key);
     }
+    
+    
 
     public function getGroup($group, $withPrefix = true)
     {
         $all    = $this->all();
+        
         $prefix = $group . '.';
+        
         if ($withPrefix) {
-            foreach ($all as $key => $value) {
-                if (!starts_with($key, $prefix)) {
-                    unset($all[$key]);
+            
+            foreach ($all as $key => $valueue)
+            {
+                if ( ! starts_with( $key, $prefix ))
+                {
+                    unset( $all[$key] );
                 }
             }
-        } else {
+        }
+        else
+        {
+            
             $newAll = [];
-            foreach ($all as $key => $value) {
-                if (starts_with($key, $prefix)) {
+            
+            foreach ($all as $key => $valueue)
+            {
+                if (starts_with($key, $prefix))
+                {
                     $newKey          = preg_replace("#^$prefix#", '', $key, 1);
-                    $newAll[$newKey] = $value;
+                    $newAll[$newKey] = $valueue;
                 }
             }
+            
             $all = $newAll;
         }
-        return count($all) > 0 ? $all : null;
+        
+        return count( $all ) > 0 ? $all : null;
     }
+    
+    
 
     public function offsetGet($key)
     {
+        
         $key = $this->verify($key);
+        
         return $this->offsetExists($key) ? $this->options[$key] : null;
+    
     }
 
     /**
@@ -133,17 +167,21 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
     public function forget($key)
     {
         $this->offsetUnset($key);
+        
     }
 
     public function offsetUnset($key)
     {
         $key = $this->verify($key);
+        
         //unset the key in array
         unset($this->options[$key]);
+        
         //delete the key from db
         $this->storage->delete($key);
+        
         // Clear the database cache
-        $this->cache->forget($this->cachekey);
+        $this->cache->flush();
     }
 
     /**
@@ -154,26 +192,32 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
     {
         return $this->offsetExists($key);
     }
+    
 
     public function offsetExists($key)
     {
         $key = $this->verify($key);
-        return isset($this->options[$key]);
+       
+        return array_key_exists( $key, $this->options );
     }
 
     public function all()
     {
-        if (count($this->options) == 0) {
+        if ( count( $this->options ) == 0 )
+        {
             return null;
         }
+        
         return $this->options;
     }
 
     public function clear()
     {
+        //clear database
         $this->storage->clear();
+        
         // Clear the database cache
-        $this->cache->forget($this->cachekey);
+        $this->cache->flush();
     }
 
     public function serialize()
@@ -184,8 +228,10 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
     public function unserialize($serialized)
     {
         $config = unserialize($serialized);
-        foreach ($config as $key => $val) {
-            $this[$key] = $val;
+        
+        foreach ($config as $key => $value)
+        {
+            $this[$key] = $value;
         }
     }
 
@@ -194,29 +240,31 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
         return json_encode($this->options);
     }
 
-    private function verify($key = '')
+    private function verify($key)
     {
-        if (empty($key) || !is_string($key)) {
-            throw new \InvalidArgumentException('Invalid Option Key!');
+        if ( ! is_string( $key ) || empty( $key ) )
+        {
+            throw new InvalidArgumentException('Invalid Option Key!');
         }
+        
         $key = e(trim($key));
-        if (!str_is('*.*', $key)) {
-            $key = sprintf('global.%s', $key);
+        
+        $prefix = $this->config->get('option.default_prefix');
+        
+        if (empty($prefix))
+        {
+            throw new InvalidArgumentException('default_prefix can not be empty');
         }
+        
+        if ( ! str_is('*.*', $key) )
+        {
+            $key = sprintf('%s.%s', $prefix, $key);
+        }
+        
         return $key;
     }
 
-    private function toPrefix($key)
-    {
-        $prefix = \Config::get('option::default_prefix');
-        if (empty($prefix)) {
-            throw new Exception('default_prefix can not be empty');
-        }
-        if (!str_is('*.*', $key)) {
-            $key = sprintf('%s.%s', $prefix, $key);
-        }
-        return $key;
-    }
+    
 }
 
 

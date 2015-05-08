@@ -15,11 +15,10 @@ class CreateOptionsTable extends Migration
         Schema::create(
             'options',
             function (Blueprint $table) {
-                $table->increments('id')->unsigned();
+                $table->increments('id');
                 $table->string('key', 50)->unique();
-                $table->text('val')->nullable();
-                $table->text('description')->nullable();
-                $table->timestamps();
+                $table->text('value')->nullable();
+               
             }
         );
     }

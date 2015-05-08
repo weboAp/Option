@@ -15,6 +15,6 @@ class OptionsTableSeeder extends Seeder
      */
     public function run()
     {
-        o::set('option.version', '1.0.1');
+        o::set('option.version', '2.0.0');
     }
 }
