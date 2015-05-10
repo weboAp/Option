@@ -79,10 +79,7 @@ Option::has('group.key');
 //retreive all keys, values at once
 Option::all(); 
 
-//retreive all values serialized
-Option::serialize();
 
-Option::toJson();
 
 
 or
