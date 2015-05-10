@@ -63,7 +63,7 @@ eg: seting a key : 'business' will be retreived like 'global.business'
 Option::set('group.key', 'value');
 
 // or set an array of key, values
-Option::batchSet(array('key0'=> 'value', 'group.key'=>'value', 'someothergroup.key1'=>'value1', .....));
+Option::set(array('key0'=> 'value', 'group.key'=>'value', 'someothergroup.key1'=>'value1', .....));
 
 
 Option::get('group.key');
