@@ -69,7 +69,7 @@ Option::set(array('key0'=> 'value', 'group.key'=>'value', 'someothergroup.key1'=
 Option::get('group.key');
 Option::get('global.key');
 
-Option::getGroup('group'); // will return an array of options prefixed with group
+Option::group('prefix'); // will return an array of options prefixed with group
 
 
 Option::forget('group.key');
