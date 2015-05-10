@@ -1,9 +1,9 @@
-<?php namespace Weboap\Option\Models;
+<?php namespace Weboap\Option\Storage;
 
-use  Config;
+
 use Illuminate\Database\Eloquent\Model as Eloquent; 
 
-class OptionModel extends Eloquent
+class EloquentModel extends Eloquent
 {
 
     protected $table = null;
@@ -13,9 +13,12 @@ class OptionModel extends Eloquent
     public $timestamps = false;
     
     
+    protected $config;
+    
+    
     public function __construct()
     {
-        $table = Config::get('option.table', 'options');
+        $table = app('config')->get('option.table', 'options');
         
         $this->setTable($table);
     }

@@ -40,22 +40,22 @@ class OptionServiceProvider extends ServiceProvider
         $tableName = Config::get('option.table');
         
         $this->RegisterStorage($tableName);
-        $this->RegisterOption($tableName);
+        $this->RegisterOption();
         $this->RegisterBooting();
         
     }
 
-    public function RegisterOption( $tableName )
+    public function RegisterOption()
     {
        
        
-       $this->app->singleton('option',  function ($app) use ($tableName)
+       $this->app->singleton('option',  function ($app)
                              {
                
                                           return new Option(
-                                                            $app->make( 'Weboap\Option\Storage\OptionEloquentRepository' ),
-                                                            $app['cache'],
-                                                            $app['config']
+                                                            $app['Weboap\Option\Contracts\Storage'],
+                                                            $app['Illuminate\Contracts\Config\Repository'],
+                                                            $app['Illuminate\Contracts\Cache\Repository']
                                                             );
                                                          }
                            );
@@ -72,14 +72,16 @@ class OptionServiceProvider extends ServiceProvider
         );
     }
 
-    protected function RegisterStorage( $tableName )
+    protected function RegisterStorage()
     {
        
        
        $this->app->singleton(
-                           'Weboap\Option\Storage\OptionInterface', function ($app) use ($tableName)
+                           'Weboap\Option\Contracts\Storage', function ($app)
                            {
-                             return new \Weboap\Option\Storage\OptionEloquentRepository( $tableName );  
+                             return new \Weboap\Option\Storage\EloquentRepository(
+                                       $app->make('Weboap\Option\Storage\EloquentModel')                                           
+                                                                                  );  
                            }
                            
                        );

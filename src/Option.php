@@ -1,91 +1,150 @@
 <?php namespace Weboap\Option;
 
 use ArrayAccess;
-use Carbon\Carbon as c;
-use Illuminate\Cache\CacheManager as Cache;
-use Illuminate\Config\Repository  as Config;
-use Serializable;
+use Illuminate\Contracts\Config\Repository as ConfigContract;
+use Illuminate\Contracts\Cache\Repository as CacheContract;
 use Weboap\Option\Exceptions\InvalidArgumentException;
-use Weboap\Option\Interfaces\OptionClassInterface;
-use Weboap\Option\Storage\OptionInterface as OptionInterface;
+use Weboap\Option\Contracts\Repository as OptionContract;
+use Weboap\Option\Contracts\Storage as StorageContract;
 
 
 
-class Option implements ArrayAccess, Serializable, OptionClassInterface
+class Option implements ArrayAccess, OptionContract
 {
 
-    /**
-     * The Config array
+        /**
+     * The Items array
      *
      * @var array
      */
-    protected $options = array();
+    protected $items = [];
 
     /**
-     * The Config array
-     *
-     * @var string
-     */
-    protected $tableName = null;
-
-    /**
-     * The Option Repository Interface Instance
+     * The Option Storage Repository Interface Instance
      *
      * @var OpenInterface
      */
     protected $storage;
+    
 
     /**
-     * The Cache Manager Instance
+     * Illuminate\Config\Repository instance
      *
-     * @var Cache
+     * @var CacheContract
      */
-    protected $cache;
+    protected $config;
     
    
-    
+     /**
+     * Illuminate\Cache\Repository instance
+     *
+     * @var CacheContract
+     */
+     protected $cache;   
 
     /**
      * Initialize the Option Class
      * build the Config array.
      *
-     * @param OptionInterface $storage The Database Interface
-     * @param Cache           $cache
+     * @param StorageContract $storage The Database Interface
+     * @param CacheContract   $cache Laravel CacheContract
      */
-    public function __construct(OptionInterface $storage , Cache $cache, Config $config)
+    public function __construct(StorageContract $storage , ConfigContract $config, CacheContract $cache)
     {
         $this->storage      = $storage;
         
         $this->cache        = $cache;
         
-        $this->config       = $config;
+        $this->config        = $config;
         
-        $this->options      = $this->storage->all()->lists('value', 'key');
+        
+        
+        $options = $cache->rememberForever('weboap.options' ,function()
+                                {
+                                    return $this->storage->all();
+                                });
+        
+        $this->items      =  $options->lists('value', 'key');
+       
     
     }
     
-
-    public function set($key, $value)
+    
+    /**
+     * Determine if the given option value exists.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function has($key)
     {
-        $this->offsetSet($key, $value); 
+            return array_has($this->items, $key);
+    }   
+    
+    
+    /**
+     * Get the specified option value.
+     *
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    public function get($key, $default = null)
+    {
+            return array_get($this->items, $key, $default);
     }
-
-    public function batchSet(Array $array)
+    
+    
+    
+    /**
+     * Set a given option value.
+     *
+     * @param  array|string  $key
+     * @param  mixed   $value
+     * @return void
+     */
+    public function set($key, $value = null)
     {
-        
-        foreach ($array as $key => $value)
-        {
+             
+            if (is_array( $key ))
+            {
+                    foreach ($key as $innerKey => $innerValue)
+                    {
+                            //verify key
+                            $innerKey = $this->verify($innerKey);
+
+                            //create or update db option
+                            $this->store($innerKey, $innerValue);
+
+                            //create option entry
+                            array_set($this->items, $innerKey, $innerValue);
+                    }
+            }
+            else
+            {
+                    //verify key
+                    $key = $this->verify($key);
+                    
+                    //create or update db option
+                    $this->store($key, $value);
+                    
+                    //create option entry
+                    array_set($this->items, $key, $value);
+            }
             
-            $this->offsetSet($key, $value);
-            
-        }
-        
+        // Clear the database cache
+        $this->cache->forget('weboap.options');
     }
-
-    public function offsetSet($key, $value)
+    
+    /**
+     * Create or update option db entry.
+     *
+     * @param  array|string  $key
+     * @param  mixed   $value
+     * @return void
+     */    
+    private function store($key, $value = null)
     {
-        $key = $this->verify($key);
-        
         if ($this->has($key))
         {
             $this->storage->update($key, $value);
@@ -94,36 +153,129 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
         {
             $this->storage->create($key, $value);
         }
+         
+    }
+    
+    
+    /**
+     * Prepend a value onto an array option value.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function prepend($key, $value)
+    {
+            $array = $this->get($key);
+
+            array_unshift($array, $value);
+
+            $this->set($key, $array);
+    }
+    
+    /**
+     * Push a value onto an array configuration value.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function push($key, $value)
+    {
+            $array = $this->get($key);
+
+            $array[] = $value;
+
+            $this->set($key, $array);
+    }
+    
+    
+    public function forget($key)
+    {
+        array_forget($this->items, $key);
         
-        $this->options[$key] = $value;
+        //delete the key from db
+        $this->storage->delete($key);
         
         // Clear the database cache
-        $this->cache->flush();
-        
+        $this->cache->forget('weboap.options');
     }
+    
+    
+    /**
+     * Get all of the configuration items for the application.
+     *
+     * @return array
+     */
+    public function all()
+    {
+            return $this->items;
+    }
+
+   
+    /**
+     * Determine if the given configuration option exists.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function offsetExists($key)
+    {
+            return $this->has($key);
+    }
+
 
     /**
-     * syntactic sugar for offsetGet($key)
+     * Get a configuration option.
      *
+     * @param  string  $key
+     * @return mixed
      */
-    public function get($key)
+    public function offsetGet($key)
     {
-        return $this->offsetGet($key);
+            return $this->get($key);
     }
     
     
-
-    public function getGroup($group, $withPrefix = true)
+    /**
+     * Set a configuration option.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function offsetSet($key, $value)
     {
+            $this->set($key, $value);
+    }
+    
+    /**
+     * Unset a configuration option.
+     *
+     * @param  string  $key
+     * @return void
+     */
+    public function offsetUnset($key)
+    {
+        $this->forget($key);
+    }    
+    
+
+    public function group($group, $prefix = true)
+    {
+        if( empty($group) ) return null;
+        
         $all    = $this->all();
         
-        $prefix = $group . '.';
+        $group = $group . '.';
         
-        if ($withPrefix) {
+        if ( $prefix ) {
             
-            foreach ($all as $key => $valueue)
+            foreach ($all as $key => $val)
             {
-                if ( ! starts_with( $key, $prefix ))
+                $this->verify($key);
+                
+                if ( ! starts_with( $key, $group ))
                 {
                     unset( $all[$key] );
                 }
@@ -134,12 +286,14 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
             
             $newAll = [];
             
-            foreach ($all as $key => $valueue)
+            foreach ($all as $key => $val)
             {
-                if (starts_with($key, $prefix))
+                $this->verify($key);
+                
+                if (starts_with($key, $group))
                 {
-                    $newKey          = preg_replace("#^$prefix#", '', $key, 1);
-                    $newAll[$newKey] = $valueue;
+                    $newKey          = preg_replace("#^$group#", '', $key, 1);
+                    $newAll[$newKey] = $val;
                 }
             }
             
@@ -151,114 +305,38 @@ class Option implements ArrayAccess, Serializable, OptionClassInterface
     
     
 
-    public function offsetGet($key)
-    {
-        
-        $key = $this->verify($key);
-        
-        return $this->offsetExists($key) ? $this->options[$key] : null;
-    
-    }
 
-    /**
-     * syntactic sugar for offsetUnset($key)
-     *
-     */
-    public function forget($key)
-    {
-        $this->offsetUnset($key);
-        
-    }
-
-    public function offsetUnset($key)
-    {
-        $key = $this->verify($key);
-        
-        //unset the key in array
-        unset($this->options[$key]);
-        
-        //delete the key from db
-        $this->storage->delete($key);
-        
-        // Clear the database cache
-        $this->cache->flush();
-    }
-
-    /**
-     * syntactic sugar for offsetExists($key)
-     *
-     */
-    public function has($key)
-    {
-        return $this->offsetExists($key);
-    }
-    
-
-    public function offsetExists($key)
-    {
-        $key = $this->verify($key);
-       
-        return array_key_exists( $key, $this->options );
-    }
-
-    public function all()
-    {
-        if ( count( $this->options ) == 0 )
-        {
-            return null;
-        }
-        
-        return $this->options;
-    }
 
     public function clear()
     {
         //clear database
         $this->storage->clear();
+        // clear cached options
+        $this->cache->forget('weboap.options');
         
-        // Clear the database cache
-        $this->cache->flush();
     }
 
-    public function serialize()
-    {
-        return serialize($this->options);
-    }
+  
 
-    public function unserialize($serialized)
-    {
-        $config = unserialize($serialized);
-        
-        foreach ($config as $key => $value)
-        {
-            $this[$key] = $value;
-        }
-    }
-
-    public function toJson()
-    {
-        return json_encode($this->options);
-    }
 
     private function verify($key)
     {
-        if ( ! is_string( $key ) || empty( $key ) )
+        if ( ! isset( $key ) || ! is_string( $key ) )
         {
             throw new InvalidArgumentException('Invalid Option Key!');
         }
         
-        $key = e(trim($key));
         
-        $prefix = $this->config->get('option.default_prefix');
+        $group = $this->config->get('option.group');
         
-        if (empty($prefix))
+        if ( empty( $group ) )
         {
-            throw new InvalidArgumentException('default_prefix can not be empty');
+            throw new InvalidArgumentException('default prefix can not be empty');
         }
         
         if ( ! str_is('*.*', $key) )
         {
-            $key = sprintf('%s.%s', $prefix, $key);
+            $key = sprintf('%s.%s', $group, $key);
         }
         
         return $key;
