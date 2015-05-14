@@ -31,7 +31,7 @@ class EloquentRepository implements StorageContract
      */
     public function all()
     {
-       return $this->model->all();
+       return $this->model->lists('value', 'key');
     }
     
     /**

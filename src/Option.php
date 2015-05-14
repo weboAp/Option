@@ -59,12 +59,12 @@ class Option implements ArrayAccess, OptionContract
         
         
         
-        $options = $cache->rememberForever('weboap.options' ,function()
+        $this->items  = $cache->rememberForever('weboap.options' ,function()
                                 {
                                     return $this->storage->all();
                                 });
         
-        $this->items      =  $options->lists('value', 'key');
+             
        
     
     }
@@ -105,7 +105,7 @@ class Option implements ArrayAccess, OptionContract
      */
     public function set($key, $value = null)
     {
-             
+            
             if (is_array( $key ))
             {
                     foreach ($key as $innerKey => $innerValue)
@@ -132,8 +132,7 @@ class Option implements ArrayAccess, OptionContract
                     array_set($this->items, $key, $value);
             }
             
-        // Clear the database cache
-        $this->cache->forget('weboap.options');
+        
     }
     
     /**
@@ -153,7 +152,11 @@ class Option implements ArrayAccess, OptionContract
         {
             $this->storage->create($key, $value);
         }
-         
+        
+       
+         // each time we add an item to the db we need to
+        // to Clear cached version and regenerate it
+        $this->cache->forget('weboap.options'); 
     }
     
     
@@ -311,6 +314,7 @@ class Option implements ArrayAccess, OptionContract
     {
         //clear database
         $this->storage->clear();
+        
         // clear cached options
         $this->cache->forget('weboap.options');
         
