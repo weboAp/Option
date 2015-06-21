@@ -1,27 +1,12 @@
 <?php namespace Weboap\Option\Storage;
 
 use Weboap\Option\Storage\EloquentModel;
-use Illuminate\Contracts\Cache\Repository as CacheContract;
-
 use Weboap\Option\Contracts\Storage as StorageContract;
 
 
 class EloquentRepository implements StorageContract
 {
 
-   protected $model;
-   
-   
-   
-    /**
-     * Initialize the Eloquent Repository Class
-     *
-     * @param EloquentModel Eloquent Model
-     */
-   public function __construct(EloquentModel $model)
-   {
-    $this->model = $model;
-   }
    
     /**
      * returns all records from db.
@@ -31,7 +16,7 @@ class EloquentRepository implements StorageContract
      */
     public function all()
     {
-       return $this->model->lists('value', 'key');
+       return EloquentModel::lists('value', 'key')->toArray();
     }
     
     /**
@@ -41,12 +26,24 @@ class EloquentRepository implements StorageContract
      * @param $value mixed
      * @return void
      */
+     /**
+     * update option value in db.
+     *
+     * @param  $key  string
+     * @param $value mixed
+     * @return void
+     */
     public function update($key, $value)
     {
-      //create is using eloquent save(), which
-      // will create new record or update an existing on
       
-      $this->create($key, $value);
+      $o = EloquentModel::whereKey($key)->first();
+      if($o)
+      {
+         $o->value = $value;
+      
+         $o->save();
+      }
+      
        
     }
 
@@ -59,13 +56,13 @@ class EloquentRepository implements StorageContract
      */
     public function create($key, $value)
     {
-        $op = new EloquentModel;
+      $o = new EloquentModel;
         
-        $op->key = $key;
-        
-        $op->value = $value;
-        
-        $op->save();
+      $o->key = $key;
+      $o->value = $value;
+      
+       $o->save();
+     
         
     }
     
@@ -77,7 +74,7 @@ class EloquentRepository implements StorageContract
      */
     public function delete($key)
     {
-        return $this->model->whereKey($key)->delete();
+        return EloquentModel::whereKey($key)->delete();
     }
     
     /**
@@ -86,6 +83,6 @@ class EloquentRepository implements StorageContract
      */
     public function clear()
     {
-        $this->model->truncate();
+        EloquentModel::truncate();
     }
 }

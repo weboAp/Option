@@ -1,20 +1,21 @@
 <?php namespace Weboap\Option\Storage;
 
 
-use Illuminate\Database\Eloquent\Model as Eloquent; 
+use Illuminate\Database\Eloquent\Model; 
 
-class EloquentModel extends Eloquent
+class EloquentModel extends Model
 {
 
-    protected $table = null;
+    protected $table = 'options';
 
     protected $fillable = ['key', 'value'];
     
     public $timestamps = false;
     
-    
-    protected $config;
-    
+    protected $casts = [
+                        'key' => 'string',
+                        'value' => 'json'
+                        ];
     
     public function __construct()
     {
@@ -23,20 +24,10 @@ class EloquentModel extends Eloquent
         $this->setTable($table);
     }
     
-    public function setKeyAttribute($value)
-    {
-        $this->attributes['key'] = $value;
-    }
     
-    public function setValueAttribute($value)
-    {
-       $this->attributes['value'] = serialize($value);
-    }
     
-    public function getValueAttribute($value)
-    {
-        return @unserialize($value);
-    }
     
+    
+
    
 }

@@ -16,8 +16,8 @@ class CreateOptionsTable extends Migration
             'options',
             function (Blueprint $table) {
                 $table->increments('id');
-                $table->string('key', 50)->unique();
-                $table->text('value')->nullable();
+                $table->string('key', 50);
+                $table->json('value');
                
             }
         );
