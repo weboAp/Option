@@ -6,16 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 class EloquentModel extends Model
 {
 
-    protected $table = 'options';
+    protected $table = null;
 
     protected $fillable = ['key', 'value'];
     
     public $timestamps = false;
     
-    protected $casts = [
-                        'key' => 'string',
-                        'value' => 'json'
-                        ];
+   
     
     public function __construct()
     {
@@ -25,7 +22,20 @@ class EloquentModel extends Model
     }
     
     
+    public function setKeyAttribute($value)
+    {
+        $this->attributes['key'] = strtolower( $value );
+    }
     
+    public function setValueAttribute($value)
+    {
+       $this->attributes['value'] = serialize($value);
+    }
+    
+    public function getValueAttribute($value)
+    {
+        return @unserialize($value);
+    }
     
     
 
