@@ -11,12 +11,14 @@
 	],
 	"require": {
 		"php": ">=5.4.0",
-		"illuminate/support": "5.*",
-		"illuminate/config": "5.*",
-		"illuminate/cache": "5.*"
+		
 
 	},
 	"require-dev": {
+		"illuminate/support": "5.*",
+		"illuminate/config": "5.*",
+		"illuminate/cache": "5.*",
+		
 		"phpspec/phpspec": "~2.1",
 		"mockery/mockery": "dev-master"
 
