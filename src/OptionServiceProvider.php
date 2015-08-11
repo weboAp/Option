@@ -22,7 +22,7 @@ class OptionServiceProvider extends ServiceProvider
     public function boot()
     {
        $this->publishes([
-                        realpath(__DIR__.'/migrations') => base_path('/database/migrations') ],
+                        realpath(__DIR__.'/database/migrations') => base_path('/database/migrations') ],
                        'migrations');
       
       $this->publishes([
