@@ -16,7 +16,7 @@ class EloquentRepository implements StorageContract
      */
     public function all()
     {
-       return EloquentModel::lists('value', 'key')->toArray();
+       return EloquentModel::pluck('value', 'key')->toArray();
     }
     
     /**
