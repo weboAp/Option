@@ -24,8 +24,8 @@
 	},
 	"autoload": {
 		"classmap": [
-			"src/database",
-			"tests/TestCase.php"
+			"src/database"
+			
 		],
 		"psr-4": {
 			"Weboap\\Option\\": "src/"
