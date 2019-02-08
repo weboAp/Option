@@ -12,6 +12,10 @@ The recommended way to install Winput is through composer.
 
 ## Step 1
 
+php composer require weboap/option
+
+OR
+
 Just add to  `composer.json` file:
 
 ``` json
@@ -33,7 +37,8 @@ Add
 ``` php
 'Weboap\Option\OptionServiceProvider'
 ``` 
-to the list of service providers in config/app.php
+to the list of service providers in config/app.php if using you are using laravel <5.5
+else the package will be auto discovered.
 
 
 ## Step 3 
@@ -63,7 +68,7 @@ eg: seting a key : 'business' will be retreived like 'global.business'
 Option::set('group.key', 'value');
 
 // or set an array of key, values
-Option::set(array('key0'=> 'value', 'group.key'=>'value', 'someothergroup.key1'=>'value1', .....));
+Option::set(['key0'=> 'value', 'group.key'=>'value', 'someothergroup.key1'=>'value1', .....]);
 
 
 Option::get('group.key');

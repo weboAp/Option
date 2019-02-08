@@ -11,26 +11,35 @@
 	],
 	"require": {
 		"php": ">=5.4.0"
-		
+
 
 	},
 	"require-dev": {
 		"illuminate/support": "5.*",
 		"illuminate/config": "5.*",
 		"illuminate/cache": "5.*",
-		"phpspec/phpspec": "~2.1",
 		"mockery/mockery": "dev-master"
 
 	},
 	"autoload": {
 		"classmap": [
-			"src/database"
-			
+			"src/database",
+            "tests/TestCase.php"
 		],
 		"psr-4": {
 			"Weboap\\Option\\": "src/"
 		}
-	},
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Weboap\\Option\\OptionServiceProvider"
+            ],
+            "aliases": {
+                "Option": "Weboap\\Option\\Facades\\Option"
+            }
+        }
+    },
 	"minimum-stability": "stable"
-	
+
 }
