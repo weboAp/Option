@@ -37,6 +37,9 @@
             ],
             "aliases": {
                 "Option": "Weboap\\Option\\Facades\\Option"
+            },
+            "branch-alias": {
+                "dev-master": "2.0.x-dev"
             }
         }
     },
