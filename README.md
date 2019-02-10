@@ -11,34 +11,18 @@ Laravel 4 users use "weboap/option": "v1.0.5"
 The recommended way to install Winput is through composer.
 
 ## Step 1
-
+```php
 php composer require weboap/option
-
-OR
-
-Just add to  `composer.json` file:
-
-``` json
-{
-    "require": {
-        "weboap/option": "dev-master"
-    }
-}
 ```
 
-then run 
-``` php
-php composer.phar update
-```
+## Step 2 (optional)
 
-## Step 2
+Add config/app.php if you are using laravel <5.5
 
-Add
 ``` php
 'Weboap\Option\OptionServiceProvider'
 ``` 
-to the list of service providers in config/app.php if using you are using laravel <5.5
-else the package will be auto discovered.
+
 
 
 ## Step 3 
